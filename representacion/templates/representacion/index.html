@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analizador de representación de datos</title>
+  <style>
+    :root {
+      --fondo: #f5f6f8; --tarjeta: #ffffff; --texto: #1c2430; --suave: #5b6675;
+      --borde: #d9dee5; --acento: #1f5fbf; --acento-texto: #ffffff;
+      --error-fondo: #fdecec; --error-borde: #d64545; --error-texto: #8f1f1f;
+      --ok-fondo: #eef6ee;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fondo: #12161c; --tarjeta: #1b212b; --texto: #e8ecf1; --suave: #9aa6b5;
+        --borde: #2e3744; --acento: #6aa3ff; --acento-texto: #0b1220;
+        --error-fondo: #3a1c1c; --error-borde: #e06c6c; --error-texto: #ffb4b4;
+        --ok-fondo: #1a2a1d;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0 16px 48px; background: var(--fondo); color: var(--texto);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    header, main { max-width: 960px; margin: 0 auto; }
+    header { padding: 28px 0 8px; }
+    h1 { margin: 0 0 4px; font-size: 1.6rem; }
+    header p { margin: 0; color: var(--suave); }
+    .tarjeta {
+      background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 10px;
+      padding: 20px; margin-top: 20px;
+    }
+    h2 { margin: 0 0 12px; font-size: 1.2rem; }
+    form { display: grid; gap: 12px; }
+    .fila { display: flex; gap: 12px; flex-wrap: wrap; }
+    .campo { display: grid; gap: 4px; flex: 1 1 200px; }
+    label { font-weight: 600; font-size: .92rem; }
+    input[type="text"], select {
+      width: 100%; padding: 10px 12px; font: inherit; color: var(--texto);
+      background: var(--fondo); border: 1px solid var(--borde); border-radius: 8px;
+    }
+    input:focus-visible, select:focus-visible, button:focus-visible {
+      outline: 3px solid var(--acento); outline-offset: 1px;
+    }
+    button {
+      padding: 10px 18px; font: inherit; font-weight: 600; cursor: pointer;
+      color: var(--acento-texto); background: var(--acento); border: 0; border-radius: 8px;
+      justify-self: start;
+    }
+    .error {
+      margin: 0; padding: 10px 12px; border-left: 4px solid var(--error-borde);
+      background: var(--error-fondo); color: var(--error-texto); border-radius: 6px;
+      font-size: .95rem;
+    }
+    .resultado { margin-top: 16px; padding: 14px; background: var(--ok-fondo); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--borde); }
+    th { font-size: .85rem; color: var(--suave); font-weight: 600; }
+    .mono { font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace; word-break: break-all; }
+    .tabla-scroll { overflow-x: auto; }
+    .resumen { display: flex; gap: 24px; flex-wrap: wrap; margin: 10px 0 0; }
+    .resumen div { min-width: 120px; }
+    .resumen dt { font-size: .8rem; color: var(--suave); }
+    .resumen dd { margin: 0; font-size: 1.25rem; font-weight: 700; }
+    .nota { color: var(--suave); font-size: .85rem; margin: 10px 0 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Analizador de representación de datos</h1>
+    <p>Sistemas numéricos y codificación de caracteres (UTF-8) — Arquitectura de Computadoras.</p>
+  </header>
+
+  <main>
+    <!-- ============ Formulario 1: número ============ -->
+    <section class="tarjeta" aria-labelledby="titulo-numero">
+      <h2 id="titulo-numero">1. Convertir un número</h2>
+      <form method="post" action="" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="numero">
+        <div class="fila">
+          <div class="campo">
+            <label for="{{ form_numero.numero.id_for_label }}">{{ form_numero.numero.label }}</label>
+            {{ form_numero.numero }}
+          </div>
+          <div class="campo">
+            <label for="{{ form_numero.base.id_for_label }}">{{ form_numero.base.label }}</label>
+            {{ form_numero.base }}
+          </div>
+        </div>
+        {% for error in form_numero.numero.errors %}<p class="error" role="alert">{{ error }}</p>{% endfor %}
+        {% for error in form_numero.base.errors %}<p class="error" role="alert">{{ error }}</p>{% endfor %}
+        <button type="submit">Convertir</button>
+      </form>
+
+      {% if resultado %}
+      <div class="resultado" aria-live="polite">
+        <table>
+          <tbody>
+            <tr><th scope="row">Decimal</th><td class="mono">{{ resultado.decimal }}</td></tr>
+            <tr>
+              <th scope="row">Binario ({{ resultado.bits_ajustados }} bits)</th>
+              <td class="mono">{{ resultado.binario_agrupado }}</td>
+            </tr>
+            <tr><th scope="row">Octal</th><td class="mono">{{ resultado.octal }}</td></tr>
+            <tr><th scope="row">Hexadecimal</th><td class="mono">{{ resultado.hexadecimal }}</td></tr>
+          </tbody>
+        </table>
+        <dl class="resumen">
+          <div><dt>Bits significativos</dt><dd>{{ resultado.bits }}</dd></div>
+          <div><dt>Bytes necesarios</dt><dd>{{ resultado.bytes }}</dd></div>
+        </dl>
+        <p class="nota">El binario se completa con ceros a la izquierda hasta el siguiente límite de byte (8, 16, 24… bits).</p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- ============ Formulario 2: texto ============ -->
+    <section class="tarjeta" aria-labelledby="titulo-texto">
+      <h2 id="titulo-texto">2. Analizar un texto</h2>
+      <form method="post" action="" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="texto">
+        <div class="campo">
+          <label for="{{ form_texto.texto.id_for_label }}">{{ form_texto.texto.label }}</label>
+          {{ form_texto.texto }}
+        </div>
+        {% for error in form_texto.texto.errors %}<p class="error" role="alert">{{ error }}</p>{% endfor %}
+        <button type="submit">Analizar</button>
+      </form>
+
+      {% if analisis %}
+      <div class="resultado" aria-live="polite">
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Carácter</th>
+                <th scope="col">Decimal</th>
+                <th scope="col">Punto de código</th>
+                <th scope="col">Hexadecimal</th>
+                <th scope="col">Bytes UTF-8</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for fila in analisis.filas %}
+              <tr>
+                <td class="mono" title="{{ fila.nombre }}">{{ fila.caracter }}</td>
+                <td class="mono">{{ fila.decimal }}</td>
+                <td class="mono">{{ fila.punto_codigo }}</td>
+                <td class="mono">{{ fila.hexadecimal }}</td>
+                <td class="mono">{{ fila.bytes_utf8 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <dl class="resumen">
+          <div><dt>Caracteres</dt><dd>{{ analisis.total_caracteres }}</dd></div>
+          <div><dt>Total de bytes en UTF-8</dt><dd>{{ analisis.total_bytes }}</dd></div>
+        </dl>
+        <p class="nota">En UTF-8 un carácter ocupa de 1 a 4 bytes: ASCII usa 1, «ñ» usa 2, «€» usa 3 y los emojis 4.</p>
+      </div>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

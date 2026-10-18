@@ -1,0 +1,17 @@
+name: analizador-datos
+
+services:
+  web:
+    build: .
+    image: analizador-datos:1.0
+    container_name: analizador
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_DEBUG: "0"
+      DJANGO_SECRET_KEY: "cambiar-esta-clave-en-un-despliegue-real"
+    # Límites de recursos (cgroups del kernel):
+    mem_limit: 256m       # máximo 256 MB de RAM
+    memswap_limit: 256m   # igual que mem_limit: sin swap adicional
+    cpus: "1.0"           # equivalente a 1 CPU
+    restart: unless-stopped
