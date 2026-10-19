@@ -128,11 +128,17 @@ real en `evidencia/docker-stats.txt`.
 ### Evidencia de `docker stats`
 
 > Pegar aquí la salida real de `docker stats --no-stream analizador` obtenida en la máquina de entrega
-> (o enlazar la captura en `evidencia/`).
+# 2026-10-19 00:26:13 — docker stats (una lectura)
+CONTAINER ID   NAME         CPU %     MEM USAGE / LIMIT   MEM %     NET I/O          BLOCK I/O   PIDS
+70f06e8031d0   analizador   0.01%     74.83MiB / 256MiB   29.23%    11.7kB / 127kB   0B / 0B     3
 
-```
-(pendiente: pegar la salida real)
-```
+# Límites configurados (bytes de RAM / nano-CPUs; 268435456 = 256 MiB, 1000000000 = 1 CPU)
+Memory=268435456 NanoCpus=1000000000
+
+# docker ps
+CONTAINER ID   IMAGE                  COMMAND                  CREATED         STATUS                            PORTS                                         NAMES
+70f06e8031d0   analizador-datos:1.0   "gunicorn config.wsg…"   6 seconds ago   Up 4 seconds (health: starting)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp   analizador
+
 
 ## Arquitectura de Von Neumann en esta aplicación
 
