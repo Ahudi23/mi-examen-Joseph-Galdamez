@@ -1,7 +1,3 @@
-Aquí tienes el documento actualizado, sin las secciones “Decisiones del proyecto” y “Guion del video de demostración”.
-
-Redacción
-
 # Analizador de representación de datos
 
 ## Enlaces de entrega
